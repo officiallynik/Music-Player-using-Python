@@ -2,6 +2,7 @@ from tkinter import *
 from pygame import mixer as mixer
 from tkinter import messagebox, filedialog
 import os
+from mutagen import mp3
 
 root = Tk()
 root.geometry('540x320')
@@ -35,25 +36,27 @@ mixer.init()
 global paused
 paused = 0
 
+
 def playMusic():
     global paused
     if paused==1:
         mixer.music.unpause()
-        statusBar['text']="Playing " + os.path.basename(filename)
         paused = 0
+        statusBar['text']="Playing " + os.path.basename(filename)
         ppBtn['image']=pause
         ppBtn['command']=pauseMusic
     else:
         try:
             mixer.music.load(filename)
-            text['text'] = "Playing " + os.path.basename(filename)
+            text['text'] = ((os.path.basename(filename)).split("."))[0].upper()
             mixer.music.play()
-            statusBar['text']="Playing " + os.path.basename(filename)    
+            statusBar['text']="Playing " + os.path.basename(filename)   
             ppBtn['image']=pause
             ppBtn['command']=pauseMusic
         except:
             messagebox.showwarning('file load error', 'There is no file to be played. Please load a file first.')
             statusBar['text']='Please selete a file to play'
+            browse()
         
 
 def stopMusic():
@@ -95,34 +98,31 @@ def muteMusic():
         mixer.music.set_volume(0)
         mute = True
 
-
 text = Label(root, text="Music is Life")
 text.pack(pady=10)
 
-buttonFrame = Frame(root)
-buttonFrame.pack(padx=10)
-
-rewindBtn = Button(buttonFrame, image=rewind, command=playMusic)
-rewindBtn.grid(row=0, column=0, padx=10)
-
-ppBtn = Button(buttonFrame, image=play, command=playMusic)
-ppBtn.grid(row=0, column=1, padx=10)
-
-stopBtn = Button(buttonFrame, image=stop, command=stopMusic)
-stopBtn.grid(row=0, column=2, padx=10)
-
-volumeFrame = Frame(root)
-volumeFrame.pack(pady=15)
-
-muteBtn = Button(volumeFrame, image=mutevol, command=muteMusic)
-muteBtn.grid(row=1, column=0, padx=10)
-
-scale = Scale(volumeFrame, from_=0, to=100, orient=HORIZONTAL, command=volume)
-scale.set(60)
-mixer.music.set_volume(.6)
-scale.grid(row=1, column=1)
-
 statusBar = Label(root, text="Symphony Music Player", relief=SUNKEN, anchor=W)
 statusBar.pack(side=BOTTOM, fill=X)
+
+buttonFrame = Frame(root)
+buttonFrame.pack(pady=10, side=BOTTOM)
+
+rewindBtn = Button(buttonFrame, image=rewind, command=playMusic, bd=0)
+rewindBtn.grid(row=0, column=0, padx=(5, 7))
+
+ppBtn = Button(buttonFrame, image=play, command=playMusic, bd=0)
+ppBtn.grid(row=0, column=1, padx=(1, 7))
+
+stopBtn = Button(buttonFrame, image=stop, command=stopMusic, bd=0)
+stopBtn.grid(row=0, column=2, padx=(1, 3))
+
+muteBtn = Button(buttonFrame, image=mutevol, command=muteMusic, bd=0)
+muteBtn.grid(row=0, column=3, padx=(25,5))
+
+scale = Scale(buttonFrame, from_=0, to=100, orient=HORIZONTAL, showvalue=0, command=volume)
+scale.set(60)
+mixer.music.set_volume(.6)
+scale.grid(row=0, column=4, pady=(2,0))
+
 
 root.mainloop()
