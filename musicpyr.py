@@ -2,13 +2,14 @@ from tkinter import *
 from pygame import mixer as mixer
 from tkinter import messagebox, filedialog
 from tkinter import ttk
+from ttkthemes import ThemedTk
 import time
 import threading
 import os
 from mutagen.mp3 import MP3
 
-root = Tk()
-root.geometry('540x320')
+root = ThemedTk(theme="arc")
+root.geometry('540x350')
 root.title("Symphony")
 root.iconbitmap("lib/music-img.ico")
 
@@ -20,10 +21,11 @@ def browse():
 playlist = []
 index = 0
 def add_to_playlist(filename):
-    global index
-    playlist.append(filename)
-    songs.insert(index, os.path.basename(filename))
-    index+=1
+    if(len(filename)>0):
+        global index
+        playlist.append(filename)
+        songs.insert(index, os.path.basename(filename))
+        index+=1
 
 def remove():
     playlist.pop(songs.curselection()[0])
@@ -36,10 +38,9 @@ submenu2 = Menu(menubar, tearoff=0)
 
 menubar.add_cascade(label='File', menu=submenu1)
 submenu1.add_command(label='Open File...', command=browse)
-submenu1.add_command(label='Exit', command=lambda: root.destroy())
 
 menubar.add_cascade(label='Help', menu=submenu2)
-submenu2.add_command(label='About', command=lambda: messagebox.showinfo('Symphony', 'Music player designed using python and its frameworks'))
+submenu2.add_command(label='About', command=lambda: messagebox.showinfo('Symphony', 'Music player designed using python and its frameworks by NIKHIL'))
 
 pause = PhotoImage(file="lib/pause.png")
 play = PhotoImage(file="lib/play-button.png")
@@ -53,7 +54,11 @@ global paused
 paused = 0
 
 def details():
-    inf = MP3(playlist[playnum])
+    if(songs.curselection()):
+        num = songs.curselection()[0]
+    else:
+        num = playnum
+    inf = MP3(playlist[num])
     tim = int(inf.info.length)
     # progressText['text'] = '{:02d}:{:02d}/{:02d}:{:02d}'.format(0, 0, time//60, time%60)
     # progress['value']=50
@@ -73,9 +78,10 @@ def showprogress(t):
             progress['value']=(x/t)*100
             time.sleep(1)
             x+=1
-    time.sleep(4)
-    progress['value']=0
+    time.sleep(2.5)
     if x==t+1 and playnum+1<len(playlist):
+        stopMusic()
+        progress['value']=0
         x=0
         playnum+=1
         playMusic()
@@ -133,7 +139,7 @@ mute = False
 def volume(val):
     global vol
     global mute
-    vol = int(val)/100
+    vol = float(val)/100
     mixer.music.set_volume(vol)
     if vol>0:
         muteBtn['image'] = unmute
@@ -155,7 +161,7 @@ def muteMusic():
         mixer.music.set_volume(0)
         mute = True
 
-text = Label(root, text="Music is Life")
+text = ttk.Label(root, text='PLAY AWESOME, LIVE AWESOME')
 text.pack(pady=10)
 
 statusBar = Label(root, text="Symphony Music Player", bg='#38dff5', anchor=W)
@@ -176,7 +182,7 @@ stopBtn.grid(row=1, column=2, padx=(1, 3))
 muteBtn = Button(buttonFrame, image=mutevol, command=muteMusic, bd=0)
 muteBtn.grid(row=1, column=3, padx=(25,5))
 
-scale = Scale(buttonFrame, from_=0, to=100, orient=HORIZONTAL, showvalue=0, command=volume)
+scale = ttk.Scale(buttonFrame, from_=0, to=100, orient=HORIZONTAL, command=volume)
 scale.set(60)
 mixer.music.set_volume(.6)
 scale.grid(row=1, column=4, pady=(2,0))
@@ -192,16 +198,17 @@ progressText.grid(row=0, column=1, padx=7, pady=1)
 
 addFrame = Frame(root)
 addFrame.pack(side=BOTTOM, pady=3)
-add = Button(addFrame, text='ADD', command=browse)
+add = ttk.Button(addFrame, text='ADD', command=browse)
 add.grid(row=0, column=0, padx=2)
-delt = Button(addFrame, text='DELETE', command=remove)
+delt = ttk.Button(addFrame, text='DELETE', command=remove)
 delt.grid(row=0, column=1, padx=2)
-songs = Listbox(root, bd=0, bg='#aaff9c', width=40)
+songs = Listbox(root, bd=1, bg='#aaff9c', width=40)
 songs.pack(side=BOTTOM, pady=(0,8))
 
 def close():
     stopMusic()
     root.destroy()
+submenu1.add_command(label='Exit', command=close)
 
 root.protocol('WM_DELETE_WINDOW', close)
 root.mainloop()
